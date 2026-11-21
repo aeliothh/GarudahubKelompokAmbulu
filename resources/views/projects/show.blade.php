@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -151,9 +152,67 @@
             color: white;
         }
 
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+
         .btn-danger {
             background: #fee2e2;
             color: #991b1b;
+        }
+
+        .btn-winner {
+            background: #166534;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 13px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 13px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
 
         .bid-item {
@@ -199,9 +258,9 @@
             display: inline-block;
             background: #dcfce7;
             color: #166534;
-            padding: 5px 9px;
+            padding: 6px 10px;
             border-radius: 5px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
         }
 
@@ -235,6 +294,21 @@
 
 <body>
 
+    @php
+        $isProjectOwner = auth()->user()->role === 'klien'
+            && (int) $project->client_id === (int) auth()->id();
+
+        $myBid = $project->bids->firstWhere(
+            'developer_id',
+            auth()->id()
+        );
+
+        $isBidOpen = $project->status === 'terbuka'
+            && !$project->batas_lelang->lt(today());
+
+        $hasWinner = $project->bids->contains('is_winner', true);
+    @endphp
+
     <nav class="navbar">
         <h2>Garuda Hub</h2>
         <a href="{{ route('dashboard') }}">Dashboard</a>
@@ -246,12 +320,24 @@
             &larr; Kembali ke Daftar Proyek
         </a>
 
-        <!-- Informasi utama proyek -->
+        @if (session('success'))
+            <div class="alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert-error">
+                @foreach ($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
+        <!-- Informasi proyek -->
         <section class="card">
 
-            <span class="category">
-                {{ $project->kategori }}
-            </span>
+            <span class="category">{{ $project->kategori }}</span>
 
             <h1>{{ $project->judul }}</h1>
 
@@ -259,9 +345,7 @@
                 {{ ucfirst($project->status) }}
             </span>
 
-            <p class="description">
-                {{ $project->deskripsi }}
-            </p>
+            <p class="description">{{ $project->deskripsi }}</p>
 
             <div class="info-grid">
 
@@ -272,23 +356,17 @@
 
                 <div class="info-item">
                     <span>Budget Minimum</span>
-                    <strong>
-                        Rp{{ number_format($project->budget_min, 0, ',', '.') }}
-                    </strong>
+                    <strong>Rp{{ number_format($project->budget_min, 0, ',', '.') }}</strong>
                 </div>
 
                 <div class="info-item">
                     <span>Budget Maksimum</span>
-                    <strong>
-                        Rp{{ number_format($project->budget_max, 0, ',', '.') }}
-                    </strong>
+                    <strong>Rp{{ number_format($project->budget_max, 0, ',', '.') }}</strong>
                 </div>
 
                 <div class="info-item">
                     <span>Batas Lelang</span>
-                    <strong>
-                        {{ $project->batas_lelang->format('d M Y') }}
-                    </strong>
+                    <strong>{{ $project->batas_lelang->format('d M Y') }}</strong>
                 </div>
 
                 <div class="info-item">
@@ -298,32 +376,23 @@
 
                 <div class="info-item">
                     <span>Tanggal Dibuat</span>
-                    <strong>
-                        {{ $project->created_at->format('d M Y') }}
-                    </strong>
+                    <strong>{{ $project->created_at->format('d M Y') }}</strong>
                 </div>
 
             </div>
 
-            <!-- Tombol khusus pemilik proyek -->
-            @if (
-                auth()->user()->role === 'klien'
-                && $project->client_id === auth()->id()
-            )
+            @if ($isProjectOwner)
                 <div class="action-group">
 
-                    <a
-                        href="{{ route('projects.edit', $project) }}"
-                        class="btn btn-primary"
-                    >
+                    <a href="{{ route('projects.edit', $project) }}"
+                       class="btn btn-primary">
                         Edit Proyek
                     </a>
 
-                    <form
-                        action="{{ route('projects.destroy', $project) }}"
-                        method="POST"
-                        onsubmit="return confirm('Yakin ingin menghapus proyek ini?')"
-                    >
+                    <form action="{{ route('projects.destroy', $project) }}"
+                          method="POST"
+                          onsubmit="return confirm('Yakin ingin menghapus proyek ini?')">
+
                         @csrf
                         @method('DELETE')
 
@@ -337,57 +406,149 @@
 
         </section>
 
-        <!-- Daftar penawaran -->
-        <section class="card">
+        <!-- Form pengajuan penawaran -->
+        @if (auth()->user()->role === 'developer')
 
-            <h2>Penawaran Developer</h2>
+            <section class="card">
 
-            @if ($project->bids->count() > 0)
+                <h2>Ajukan Penawaran</h2>
 
-                @foreach ($project->bids as $bid)
+                @if ($myBid)
 
-                    <div class="bid-item">
+                    <div class="empty">
+                        <h3>Penawaran Sudah Diajukan</h3>
 
-                        <div class="bid-header">
-                            <strong>
-                                {{ $bid->developer->nama }}
-                            </strong>
-
-                            <span class="bid-price">
-                                Rp{{ number_format($bid->harga, 0, ',', '.') }}
-                            </span>
-                        </div>
-
-                        <div class="bid-details">
-                            <span>Durasi: {{ $bid->durasi }} hari</span>
-
-                            @if ($bid->is_winner)
-                                <span class="winner">
-                                    Penawaran Terpilih
-                                </span>
-                            @endif
-                        </div>
-
-                        <p class="proposal">
-                            {{ $bid->proposal }}
+                        <p style="margin-top: 10px;">
+                            Kamu sudah mengajukan penawaran untuk proyek ini.
                         </p>
 
+                        <p style="margin-top: 10px;">
+                            Harga:
+                            <strong>
+                                Rp{{ number_format($myBid->harga, 0, ',', '.') }}
+                            </strong>
+                        </p>
+
+                        <p style="margin-top: 5px;">
+                            Durasi: {{ $myBid->durasi }} hari
+                        </p>
                     </div>
 
-                @endforeach
+                @elseif ($isBidOpen)
 
-            @else
-
-                <div class="empty">
-                    <h3>Belum Ada Penawaran</h3>
-                    <p style="margin-top: 8px;">
-                        Belum ada developer yang mengajukan penawaran untuk proyek ini.
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 22px;">
+                        Isi informasi penawaran sesuai kemampuan dan estimasi pengerjaanmu.
                     </p>
-                </div>
 
-            @endif
+                    <form action="{{ route('bids.store', $project) }}" method="POST">
+                        @csrf
 
-        </section>
+                        <div class="form-group">
+                            <label for="harga">Harga Penawaran (Rp)</label>
+                            <input type="number" id="harga" name="harga"
+                                   value="{{ old('harga') }}"
+                                   min="1" placeholder="Contoh: 7500000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="durasi">Durasi Pengerjaan (Hari)</label>
+                            <input type="number" id="durasi" name="durasi"
+                                   value="{{ old('durasi') }}"
+                                   min="1" placeholder="Contoh: 30" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposal">Proposal Penawaran</label>
+                            <textarea id="proposal" name="proposal"
+                                      placeholder="Jelaskan pendekatan pengerjaan dan kemampuan yang kamu tawarkan..."
+                                      required>{{ old('proposal') }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Kirim Penawaran
+                        </button>
+                    </form>
+
+                @else
+
+                    <div class="empty">
+                        <h3>Penawaran Ditutup</h3>
+                        <p style="margin-top: 8px;">
+                            Proyek ini tidak lagi menerima penawaran.
+                        </p>
+                    </div>
+
+                @endif
+
+            </section>
+
+        @endif
+
+        <!-- Daftar penawaran untuk klien pemilik proyek -->
+        @if ($isProjectOwner)
+
+            <section class="card">
+
+                <h2>Penawaran Developer</h2>
+
+                @if ($project->bids->count() > 0)
+
+                    @foreach ($project->bids as $bid)
+
+                        <div class="bid-item">
+
+                            <div class="bid-header">
+                                <strong>{{ $bid->developer->nama }}</strong>
+
+                                <span class="bid-price">
+                                    Rp{{ number_format($bid->harga, 0, ',', '.') }}
+                                </span>
+                            </div>
+
+                            <div class="bid-details">
+                                <span>Durasi: {{ $bid->durasi }} hari</span>
+
+                                @if ($bid->is_winner)
+                                    <span class="winner">
+                                        Penawaran Terpilih
+                                    </span>
+                                @endif
+                            </div>
+
+                            <p class="proposal">{{ $bid->proposal }}</p>
+
+                            @if (!$hasWinner && $isBidOpen)
+                                <form
+                                    action="{{ route('bids.winner', [$project, $bid]) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Yakin memilih {{ $bid->developer->nama }} sebagai pemenang?')"
+                                >
+                                    @csrf
+
+                                    <button type="submit" class="btn btn-winner">
+                                        Pilih sebagai Pemenang
+                                    </button>
+                                </form>
+                            @endif
+
+                        </div>
+
+                    @endforeach
+
+                @else
+
+                    <div class="empty">
+                        <h3>Belum Ada Penawaran</h3>
+                        <p style="margin-top: 8px;">
+                            Belum ada developer yang mengajukan penawaran.
+                        </p>
+                    </div>
+
+                @endif
+
+            </section>
+
+        @endif
 
     </main>
 
