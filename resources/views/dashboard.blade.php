@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -280,10 +281,12 @@
                     <h3>Panel Admin</h3>
 
                     <p>
-                        Area pengelolaan pengguna dan aktivitas Garuda Hub. Fitur administrasi sedang dikembangkan.
+                        Kelola pengguna, pantau seluruh proyek, dan lihat aktivitas penawaran Garuda Hub.
                     </p>
 
-                    <span class="role-badge">Dalam Pengembangan</span>
+                    <a href="{{ route('admin.dashboard') }}" class="btn">
+                        Buka Panel Admin
+                    </a>
                 </div>
 
             @endif

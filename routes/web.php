@@ -5,34 +5,48 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\BidController;
+use App\Http\Controllers\AdminController;
 
 // Halaman utama
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Authentication untuk pengguna yang belum login
+// Authentication
 Route::middleware('guest')->group(function () {
 
-    // Registrasi
     Route::get('/register', [AuthController::class, 'showRegister'])
         ->name('register');
 
     Route::post('/register', [AuthController::class, 'register']);
 
-    // Login
     Route::get('/login', [AuthController::class, 'showLogin'])
         ->name('login');
 
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-// Dashboard
+// Dashboard pengguna
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth')->name('dashboard');
 
-// Daftar proyek untuk klien dan developer
+// Dashboard dan pengelolaan khusus admin
+Route::middleware(['auth', 'role:admin'])->group(function () {
+
+    Route::get('/admin', [AdminController::class, 'index'])
+        ->name('admin.dashboard');
+
+    Route::get('/admin/users', [AdminController::class, 'users'])
+        ->name('admin.users');
+
+    Route::get('/admin/projects', [AdminController::class, 'projects'])
+        ->name('admin.projects');
+    Route::get('/admin/bids', [AdminController::class, 'bids'])
+        ->name('admin.bids');
+});
+
+// Daftar dan detail proyek
 Route::middleware(['auth', 'role:klien,developer'])->group(function () {
 
     Route::get('/projects', [ProjectController::class, 'index'])
@@ -65,14 +79,12 @@ Route::middleware(['auth', 'role:klien'])->group(function () {
         ->name('projects.destroy');
 });
 
-// Sistem bidding khusus developer
+// Bidding khusus developer
 Route::middleware(['auth', 'role:developer'])->group(function () {
 
-    // Melihat daftar penawaran milik developer
     Route::get('/my-bids', [BidController::class, 'index'])
         ->name('bids.index');
 
-    // Mengajukan penawaran pada proyek
     Route::post('/projects/{project}/bids', [BidController::class, 'store'])
         ->whereNumber('project')
         ->name('bids.store');
