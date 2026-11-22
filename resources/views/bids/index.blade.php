@@ -1,12 +1,13 @@
 
 <!DOCTYPE html>
 <html lang="id">
+    <link rel="stylesheet" href="{{ asset('css/security-fixes.css') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penawaran Saya - Garuda Hub</title>
 
-    <style>
+    <style nonce="{{ $cspNonce }}">
         * {
             box-sizing: border-box;
             margin: 0;
@@ -290,7 +291,7 @@
 
             <div class="empty">
                 <h3>Belum Ada Penawaran</h3>
-                <p style="margin-top: 10px;">
+                <p class="csp-mt-10">
                     Kamu belum pernah mengajukan penawaran proyek.
                 </p>
             </div>

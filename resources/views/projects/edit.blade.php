@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
+    <link rel="stylesheet" href="{{ asset('css/security-fixes.css') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Proyek - Garuda Hub</title>
 
-    <style>
+    <style nonce="{{ $cspNonce }}">
         * {
             box-sizing: border-box;
             margin: 0;
@@ -163,7 +164,7 @@
                 <div class="alert">
                     <strong>Periksa kembali data yang kamu masukkan:</strong>
 
-                    <ul style="margin-top: 8px; padding-left: 20px;">
+                    <ul class="csp-list-spacing">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach

@@ -1,12 +1,13 @@
 
 <!DOCTYPE html>
 <html lang="id">
+    <link rel="stylesheet" href="{{ asset('css/security-fixes.css') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Proyek - Garuda Hub</title>
 
-    <style>
+    <style nonce="{{ $cspNonce }}">
         * {
             box-sizing: border-box;
             margin: 0;
@@ -391,7 +392,7 @@
 
                     <form action="{{ route('projects.destroy', $project) }}"
                           method="POST"
-                          onsubmit="return confirm('Yakin ingin menghapus proyek ini?')">
+                          data-confirm="Yakin ingin menghapus proyek ini?">
 
                         @csrf
                         @method('DELETE')
@@ -418,25 +419,25 @@
                     <div class="empty">
                         <h3>Penawaran Sudah Diajukan</h3>
 
-                        <p style="margin-top: 10px;">
+                        <p class="csp-mt-10">
                             Kamu sudah mengajukan penawaran untuk proyek ini.
                         </p>
 
-                        <p style="margin-top: 10px;">
+                        <p class="csp-mt-10">
                             Harga:
                             <strong>
                                 Rp{{ number_format($myBid->harga, 0, ',', '.') }}
                             </strong>
                         </p>
 
-                        <p style="margin-top: 5px;">
+                        <p class="csp-mt-5">
                             Durasi: {{ $myBid->durasi }} hari
                         </p>
                     </div>
 
                 @elseif ($isBidOpen)
 
-                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 22px;">
+                    <p class="csp-project-note">
                         Isi informasi penawaran sesuai kemampuan dan estimasi pengerjaanmu.
                     </p>
 
@@ -473,7 +474,7 @@
 
                     <div class="empty">
                         <h3>Penawaran Ditutup</h3>
-                        <p style="margin-top: 8px;">
+                        <p class="csp-mt-8">
                             Proyek ini tidak lagi menerima penawaran.
                         </p>
                     </div>
@@ -521,7 +522,7 @@
                                 <form
                                     action="{{ route('bids.winner', [$project, $bid]) }}"
                                     method="POST"
-                                    onsubmit="return confirm('Yakin memilih {{ $bid->developer->nama }} sebagai pemenang?')"
+                                    data-confirm="Yakin memilih {{ $bid->developer->nama }} sebagai pemenang?"
                                 >
                                     @csrf
 
@@ -539,7 +540,7 @@
 
                     <div class="empty">
                         <h3>Belum Ada Penawaran</h3>
-                        <p style="margin-top: 8px;">
+                        <p class="csp-mt-8">
                             Belum ada developer yang mengajukan penawaran.
                         </p>
                     </div>
@@ -551,6 +552,8 @@
         @endif
 
     </main>
+
+    <script src="{{ asset('js/project-confirm.js') }}" defer></script>
 
 </body>
 </html>
