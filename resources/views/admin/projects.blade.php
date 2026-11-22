@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
+    <link rel="stylesheet" href="{{ asset('css/security-fixes.css') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Proyek - Garuda Hub</title>
 
-    <style>
+    <style nonce="{{ $cspNonce }}">
         * {
             box-sizing: border-box;
             margin: 0;
@@ -410,7 +411,7 @@
                 <div class="empty">
                     <h3>Proyek Tidak Ditemukan</h3>
 
-                    <p style="margin-top: 8px;">
+                    <p class="csp-mt-8">
                         Coba gunakan kata kunci atau filter yang berbeda.
                     </p>
                 </div>

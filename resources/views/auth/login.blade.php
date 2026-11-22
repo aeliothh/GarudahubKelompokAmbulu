@@ -1,3 +1,13 @@
+{{--
+    IDENTITAS KELOMPOK GARUDA HUB
+
+    1. NIM: 252410102027
+    2. NIM: 252410102044
+    3. NIM: 252410102085
+    4. NIM: 252410102093
+    5. NIM: 252410102094
+--}}
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -5,7 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Garuda Hub</title>
 
-    <style>
+    <style nonce="{{ $cspNonce }}">
         * {
             box-sizing: border-box;
             margin: 0;
